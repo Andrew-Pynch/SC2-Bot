@@ -1,4 +1,6 @@
 import math
+import sys
+import time
 
 import cv2
 from sc2.bot_ai import BotAI
@@ -28,6 +30,13 @@ def render(bot_instance: BotAI, map):
         cv2.flip(cv2.resize(map, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0),
     )
     cv2.waitKey(1)
+
+    # if save_replay:
+    #     save_replay()
+
+
+def save_replay():
+    cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", map)
 
 
 def render_fractional_material(map, pos, fraction, color):
@@ -146,3 +155,10 @@ def draw_self_units(bot_instance: BotAI, map):
                 else 0.0001
             )
             map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+
+
+def end_rendering():
+    cv2.destroyAllWindows()
+    cv2.waitKey(1)
+    time.sleep(3)
+    sys.exit()
