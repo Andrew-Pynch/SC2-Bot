@@ -1,4 +1,5 @@
 import math
+import os
 import pickle
 import random
 import sys
@@ -21,15 +22,19 @@ from sc2.player import (  # wrapper for whether or not the agent is one of your 
 )
 
 SAVE_REPLAY = True
+TIME = int(time.time())
+
+rendering.create_replay_screenshots_dir(TIME)
 
 
 class Richard(BotAI):  # inherits from BotAI
     async def on_step(self, iteration: int):  # on step is called every game step
+
         map = np.zeros(
             (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
         )
 
-        rendering.render(self, map, iteration, SAVE_REPLAY)
+        rendering.render(self, map, iteration, SAVE_REPLAY, TIME)
 
 
 def main():
@@ -43,3 +48,6 @@ def main():
         ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
         realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
     )
+
+    rendering.convert_replay_screenshots_to_video(TIME)
+    # rendering.cleanup_replay_screenshots_dir(TIME)

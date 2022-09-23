@@ -17,7 +17,7 @@ SELF_UNITS_COLOR = [255, 75, 75]
 MAIN_ATTACK_UNIT_COLOR = [175, 255, 0]
 
 
-def render(bot_instance: BotAI, map, iteration, should_save_replay):
+def render(bot_instance: BotAI, map, iteration, should_save_replay, _time):
     draw_minerals(bot_instance, map)
     draw_enemy_start_location(bot_instance, map)
     draw_enemy_units(bot_instance, map)
@@ -33,30 +33,7 @@ def render(bot_instance: BotAI, map, iteration, should_save_replay):
     cv2.waitKey(1)
 
     if should_save_replay:
-        save_replay(iteration)
-
-
-def save_replay(iteration):
-    _time = int(time.time())
-    print("type", type(map))
-    # cv2.imwrite(f"replays/images/{_time}-{iteration}.png", map)
-    # images = [
-    #     img
-    #     for img in os.listdir(f"replays/iamges/{_time}-{iteration}")
-    #     if img.endswith(".png")
-    # ]
-    # frame = cv2.imread(os.path.join(f"replays/images/{_time}-{iteration}", images[0]))
-    # height, width, layers = frame.shape
-
-    # video = cv2.VideoWriter(
-    #     f"replays/videos/{_time}-{iteration}.avi", 0, 1, (width, height)
-    # )
-
-    # for image in images:
-    #     video.write(
-    #         cv2.imread(os.path.join(f"replays/images/{_time}-{iteration}", image))
-    #     )
-    # video.release()
+        save_replay(iteration, map, _time)
 
 
 def render_fractional_material(map, pos, fraction, color):
@@ -175,6 +152,65 @@ def draw_self_units(bot_instance: BotAI, map):
                 else 0.0001
             )
             map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
+
+
+def save_replay(iteration, map, _time):
+    try:
+
+        cv2.imwrite(
+            f"/home/andrew/Github/SC2-Bot/replays/images/{_time}/{iteration}.png", map
+        )
+    except Exception as e:
+        print("Error writing image", e)
+
+
+def convert_replay_screenshots_to_video(_time):
+    # This path has to exist before we try writing a video file in
+    create_replay_video_dir(_time)
+
+    images = [
+        img for img in os.listdir(f"replays/images/{_time}") if img.endswith(".png")
+    ]
+
+    frame = cv2.imread(os.path.join(f"replays/images/{_time}", images[0]))
+    height, width, layers = frame.shape
+
+    fourcc = cv2.VideoWriter_fourcc(*"XVID")
+    video = cv2.VideoWriter(
+        f"replays/videos/{_time}/{_time}.avi", fourcc, 5, (width, height)
+    )
+
+    try:
+        for image in images:
+            video.write(cv2.imread(os.path.join(f"replays/images/{_time}", image)))
+    except Exception as e:
+        print("Error writing video", e)
+    video.release()
+
+
+def create_replay_video_dir(_time):
+    try:
+        parent = "/home/andrew/Github/SC2-Bot/replays/videos/"
+        dir = str(_time)
+        path = os.path.join(parent, dir)
+        os.mkdir(path)
+    except Exception as e:
+        print("Error creating video dir", e)
+
+
+def create_replay_screenshots_dir(_time):
+    try:
+        parent = "/home/andrew/Github/SC2-Bot/replays/images/"
+        dir = str(_time)
+        path = os.path.join(parent, dir)
+        os.mkdir(path)
+    except Exception as e:
+        print("Error creating screenshots dir", e)
+
+
+def cleanup_replay_screenshots_dir(_time):
+    path = f"/home/andrew/Github/SC2-Bot/replays/images/{_time}"
+    os.rmdir(path)
 
 
 def end_rendering():
