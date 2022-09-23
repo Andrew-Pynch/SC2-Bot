@@ -7,6 +7,7 @@ from http.client import NOT_IMPLEMENTED
 
 import cv2
 import numpy as np
+from rendering import rendering
 from sc2 import maps  # maps method for loading maps to play in.
 from sc2.bot_ai import BotAI  # parent class we inherit from
 from sc2.data import Difficulty, Race  # difficulty for bots, race for the 1 of 3 races
@@ -20,70 +21,15 @@ from sc2.player import (  # wrapper for whether or not the agent is one of your 
 )
 
 SAVE_REPLAY = True
-FILE = "state_rwd_action.pkl"
-
-total_steps = 10000
-# wtf is this shit harrison?
-steps_for_pun = np.linspace(0, 1, total_steps)
-step_punishment = ((np.exp(steps_for_pun**3) / 10) - 0.1) * 10
 
 
 class Richard(BotAI):  # inherits from BotAI
     async def on_step(self, iteration: int):  # on step is called every game step
-
-        # no_action = True
-        # while no_action:
-        #     try:
-        #         with (FILE, "rb") as f:
-        #             state_rwd_action = pickle.load(f)
-
-        #             if state_rwd_action["action"] is None:
-        #                 no_action = True
-        #             else:
-        #                 no_action = False
-
-        #     except Exception as e:
-        #         pass
-
-        # await self.distribute_workers()  # put them idle boys BACK 👏 TO 👏 WORK
-
-        # set action to a random number between 0, and up to 5
-        action = random.randint(0, 5)
-        print(f"iteration: {iteration}\naction: {action}")
-
-        """
-        0: expand (ie: move to next spot, or build to 16 (minerals)+3 assemblers+3)
-        1: build stargate (or up to one) (evenly)
-        2: build voidray (evenly)
-        3: send scout (evenly/random/closest to enemy?)
-        4: attack (known buildings, units, then enemy base, just go in logical order.)
-        5: voidray flee (back to base)
-        """
-
-        if action == 0:
-            self.expand()
-        elif action == 1:
-            self.build_stargate()
-        elif action == 2:
-            self.build_voidray()
-        elif action == 3:
-            self.send_scout(iteration)
-        elif action == 4:
-            self.attack()
-        elif action == 5:
-            self.voidray_flee()
-
         map = np.zeros(
             (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
         )
 
-        self.draw_minerals(map)
-        self.draw_enemy_start_location(map)
-        self.draw_enemy_units(map)
-        self.draw_enemy_structures(map)
-        self.draw_self_structures(map)
-        self.draw_vespene_geysers(map)
-        self.draw_self_units(map)
+        rendering.render(self, map)
 
         cv2.imshow(
             "map",
@@ -128,119 +74,6 @@ class Richard(BotAI):  # inherits from BotAI
 
         # with open("state_rwd_action.pkl", "wb") as f:
         # pickle.dump(data, f)
-
-    def draw_minerals(self, map):
-        for mineral in self.mineral_field:
-            pos = mineral.position
-            color = [175, 255, 255]  # mineral color
-            fraction = mineral.mineral_contents / 1800
-            if mineral.is_visible:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [
-                    int(fraction * i) for i in color
-                ]
-            else:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [20, 75, 50]
-
-    def draw_enemy_start_location(self, map):
-        for enemy_start_location in self.enemy_start_locations:
-            pos = enemy_start_location
-            color = [0, 0, 255]
-            map[math.ceil(pos.y)][math.ceil(pos.y)] = color
-
-    def draw_enemy_units(self, map):
-        for enemy_unit in self.enemy_units:
-            pos = enemy_unit.position
-            color = [100, 0, 255]
-            # get unit health fraction
-            fraction = (
-                enemy_unit.health / enemy_unit.health_max
-                if enemy_unit.health_max > 0
-                else 0.0001
-            )
-            map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in color]
-
-    def draw_enemy_structures(self, map):
-        for enemy_structure in self.enemy_structures:
-            pos = enemy_structure.position
-            color = [0, 100, 255]
-            # get structure health fraction
-            fraction = (
-                enemy_structure.health / enemy_structure.health_max
-                if enemy_structure.health_max > 0
-                else 0.0001
-            )
-            map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in color]
-
-    def draw_self_structures(self, map):
-        for structure in self.structures:
-            # If nexus
-            if structure.type_id == UnitTypeId.NEXUS:
-                pos = structure.position
-                color = [255, 255, 175]
-                # get structure health fraction
-                fraction = (
-                    structure.health / structure.health_max
-                    if structure.health_max > 0
-                    else 0.0001
-                )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [
-                    int(fraction * i) for i in color
-                ]
-            else:
-                pos = structure.position
-                color = [0, 255, 175]
-                # get structure health fraction
-                fraction = (
-                    structure.health / structure.health_max
-                    if structure.health_max > 0
-                    else 0.0001
-                )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [
-                    int(fraction * i) for i in color
-                ]
-
-    def draw_vespene_geysers(self, map):
-        # draw the vespene geysers:
-        for vespene in self.vespene_geyser:
-            # draw these after buildings, since assimilators go over them.
-            # tried to denote some way that assimilator was on top, couldnt
-            # come up with anything. Tried by positions, but the positions arent identical. ie:
-            # vesp position: (50.5, 63.5)
-            # bldg positions: [(64.369873046875, 58.982421875), (52.85693359375, 51.593505859375),...]
-            pos = vespene.position
-            c = [255, 175, 255]
-            fraction = vespene.vespene_contents / 2250
-
-            if vespene.is_visible:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
-            else:
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [50, 20, 75]
-
-    def draw_self_units(self, map):
-        # draw our units:
-        for our_unit in self.units:
-            # if it is a voidray:
-            if our_unit.type_id == UnitTypeId.VOIDRAY:
-                pos = our_unit.position
-                c = [255, 75, 75]
-                # get health:
-                fraction = (
-                    our_unit.health / our_unit.health_max
-                    if our_unit.health_max > 0
-                    else 0.0001
-                )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
-
-            else:
-                pos = our_unit.position
-                c = [175, 255, 0]
-                # get health:
-                fraction = (
-                    our_unit.health / our_unit.health_max
-                    if our_unit.health_max > 0
-                    else 0.0001
-                )
-                map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
 
     async def expand(self):
         try:
@@ -405,39 +238,38 @@ class Richard(BotAI):  # inherits from BotAI
                 vr.attack(self.start_location)
 
 
-result = run_game(  # run_game is a function that runs the game.
-    maps.get("AbyssalReefLE"),  # the map we are playing on
-    [
-        Bot(
-            Race.Protoss, Richard()
-        ),  # runs our coded bot, protoss race, and we pass our bot object
-        Computer(Race.Zerg, Difficulty.Hard),
-    ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
-    realtime=True,  # When set to True, the agent is limited in how long each step can take to process.
-)
+def main():
+    result = run_game(  # run_game is a function that runs the game.
+        maps.get("AbyssalReefLE"),  # the map we are playing on
+        [
+            Bot(
+                Race.Protoss, Richard()
+            ),  # runs our coded bot, protoss race, and we pass our bot object
+            Computer(Race.Zerg, Difficulty.Hard),
+        ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
+        realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
+    )
 
+    # if str(result) == "Result.Victory":
+    #     rwd = 500
+    # else:
+    #     rwd = -500
 
-# if str(result) == "Result.Victory":
-#     rwd = 500
-# else:
-#     rwd = -500
+    # with open("results.txt", "a") as f:
+    #     f.write(f"{result}\n")
 
-# with open("results.txt", "a") as f:
-#     f.write(f"{result}\n")
+    # map = np.zeros((224, 224, 3), dtype=np.uint8)
+    # observation = map
+    # data = {
+    #     "state": map,
+    #     "reward": rwd,
+    #     "action": None,
+    #     "done": True,
+    # }  # empty action waiting for the next one!
+    # with open("state_rwd_action.pkl", "wb") as f:
+    #     pickle.dump(data, f)
 
-
-# map = np.zeros((224, 224, 3), dtype=np.uint8)
-# observation = map
-# data = {
-#     "state": map,
-#     "reward": rwd,
-#     "action": None,
-#     "done": True,
-# }  # empty action waiting for the next one!
-# with open("state_rwd_action.pkl", "wb") as f:
-#     pickle.dump(data, f)
-
-# cv2.destroyAllWindows()
-# cv2.waitKey(1)
-# time.sleep(3)
-# sys.exit()
+    # cv2.destroyAllWindows()
+    # cv2.waitKey(1)
+    # time.sleep(3)
+    # sys.exit()
