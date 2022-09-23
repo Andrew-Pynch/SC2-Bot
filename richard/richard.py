@@ -29,7 +29,7 @@ class Richard(BotAI):  # inherits from BotAI
             (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
         )
 
-        rendering.render(self, map)
+        rendering.render(self, map, iteration, SAVE_REPLAY)
 
 
 def main():

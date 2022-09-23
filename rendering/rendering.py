@@ -1,4 +1,5 @@
 import math
+import os
 import sys
 import time
 
@@ -16,7 +17,7 @@ SELF_UNITS_COLOR = [255, 75, 75]
 MAIN_ATTACK_UNIT_COLOR = [175, 255, 0]
 
 
-def render(bot_instance: BotAI, map):
+def render(bot_instance: BotAI, map, iteration, should_save_replay):
     draw_minerals(bot_instance, map)
     draw_enemy_start_location(bot_instance, map)
     draw_enemy_units(bot_instance, map)
@@ -31,12 +32,31 @@ def render(bot_instance: BotAI, map):
     )
     cv2.waitKey(1)
 
-    # if save_replay:
-    #     save_replay()
+    if should_save_replay:
+        save_replay(iteration)
 
 
-def save_replay():
-    cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", map)
+def save_replay(iteration):
+    _time = int(time.time())
+    print("type", type(map))
+    # cv2.imwrite(f"replays/images/{_time}-{iteration}.png", map)
+    # images = [
+    #     img
+    #     for img in os.listdir(f"replays/iamges/{_time}-{iteration}")
+    #     if img.endswith(".png")
+    # ]
+    # frame = cv2.imread(os.path.join(f"replays/images/{_time}-{iteration}", images[0]))
+    # height, width, layers = frame.shape
+
+    # video = cv2.VideoWriter(
+    #     f"replays/videos/{_time}-{iteration}.avi", 0, 1, (width, height)
+    # )
+
+    # for image in images:
+    #     video.write(
+    #         cv2.imread(os.path.join(f"replays/images/{_time}-{iteration}", image))
+    #     )
+    # video.release()
 
 
 def render_fractional_material(map, pos, fraction, color):
