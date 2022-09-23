@@ -1,5 +1,6 @@
 import math
 
+import cv2
 from sc2.bot_ai import BotAI
 from sc2.ids.unit_typeid import UnitTypeId
 
@@ -21,6 +22,12 @@ def render(bot_instance: BotAI, map):
     draw_self_structures(bot_instance, map)
     draw_vespene_geysers(bot_instance, map)
     draw_self_units(bot_instance, map)
+
+    cv2.imshow(
+        "map",
+        cv2.flip(cv2.resize(map, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0),
+    )
+    cv2.waitKey(1)
 
 
 def render_fractional_material(map, pos, fraction, color):

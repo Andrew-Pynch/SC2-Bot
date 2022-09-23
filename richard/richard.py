@@ -31,49 +31,11 @@ class Richard(BotAI):  # inherits from BotAI
 
         rendering.render(self, map)
 
-        cv2.imshow(
-            "map",
-            cv2.flip(
-                cv2.resize(map, None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST), 0
-            ),
-        )
-        cv2.waitKey(1)
+
 
         # if SAVE_REPLY:
         #     cv2.imwrite(f"replays/{int(time.time())}-{iteration}.png", map)
 
-        # reward = 0
-
-        # try:
-        #     attack_count = 0
-        #     # iterate through our voidrays
-        #     for voidray in self.units(UnitTypeId.VOIDRAY):
-        #         # if it's attacking, add to attack count
-        #         if voidray.is_attacking and voidray.target_in_range:
-        #             if self.enemy_units.closer_than(
-        #                 8, voidray
-        #             ) or self.enemy_structures.closer_than(8, voidray):
-        #                 reward += 0.015
-        #                 attack_count += 1
-        # except Exception as e:
-        #     print("reward", e)
-        #     reward = 0
-
-        # if iteration % 100 == 0:
-        #     print(
-        #         f"Iter: {iteration}. RWD: {reward}. VR: {self.units(UnitTypeId.VOIDRAY).amount}"
-        #     )
-
-        # # write the file:
-        # data = {
-        #     "state": map,
-        #     "reward": reward,
-        #     "action": None,
-        #     "done": False,
-        # }  # empty action waiting for the next one!
-
-        # with open("state_rwd_action.pkl", "wb") as f:
-        # pickle.dump(data, f)
 
     async def expand(self):
         try:
