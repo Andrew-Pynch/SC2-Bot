@@ -30,7 +30,7 @@ step_punishment = ((np.exp(steps_for_pun**3) / 10) - 0.1) * 10
 
 class Richard(BotAI):  # inherits from BotAI
     async def on_step(self, iteration: int):  # on step is called every game step
-        print(f"iteration: {iteration}")
+
         # no_action = True
         # while no_action:
         #     try:
@@ -47,7 +47,10 @@ class Richard(BotAI):  # inherits from BotAI
 
         # await self.distribute_workers()  # put them idle boys BACK 👏 TO 👏 WORK
 
-        # action = state_rwd_action["action"]
+        # set action to a random number between 0, and up to 5
+        action = random.randint(0, 5)
+        print(f"iteration: {iteration}\naction: {action}")
+
         """
         0: expand (ie: move to next spot, or build to 16 (minerals)+3 assemblers+3)
         1: build stargate (or up to one) (evenly)
@@ -57,18 +60,18 @@ class Richard(BotAI):  # inherits from BotAI
         5: voidray flee (back to base)
         """
 
-        # if action == 0:
-        #     self.expand()
-        # elif action == 1:
-        #     self.build_stargate()
-        # elif action == 2:
-        #     self.build_voidray()
-        # elif action == 3:
-        #     self.send_scout()
-        # elif action == 4:
-        #     self.attack()
-        # elif action == 5:
-        #     self.voidray_flee(iteration)
+        if action == 0:
+            self.expand()
+        elif action == 1:
+            self.build_stargate()
+        elif action == 2:
+            self.build_voidray()
+        elif action == 3:
+            self.send_scout(iteration)
+        elif action == 4:
+            self.attack()
+        elif action == 5:
+            self.voidray_flee()
 
         map = np.zeros(
             (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
@@ -239,167 +242,167 @@ class Richard(BotAI):  # inherits from BotAI
                 )
                 map[math.ceil(pos.y)][math.ceil(pos.x)] = [int(fraction * i) for i in c]
 
-    # async def expand(self):
-    #     try:
-    #         found_something = False
-    #         if self.supply_left < 4:
-    #             # build pylons.
-    #             if self.already_pending(UnitTypeId.PYLON) == 0:
-    #                 if self.can_afford(UnitTypeId.PYLON):
-    #                     await self.build(
-    #                         UnitTypeId.PYLON, near=random.choice(self.townhalls)
-    #                     )
-    #                     found_something = True
+    async def expand(self):
+        try:
+            found_something = False
+            if self.supply_left < 4:
+                # build pylons.
+                if self.already_pending(UnitTypeId.PYLON) == 0:
+                    if self.can_afford(UnitTypeId.PYLON):
+                        await self.build(
+                            UnitTypeId.PYLON, near=random.choice(self.townhalls)
+                        )
+                        found_something = True
 
-    #         if not found_something:
+            if not found_something:
 
-    #             for nexus in self.townhalls:
-    #                 # get worker count for this nexus:
-    #                 worker_count = len(self.workers.closer_than(10, nexus))
-    #                 if worker_count < 22:  # 16+3+3
-    #                     if nexus.is_idle and self.can_afford(UnitTypeId.PROBE):
-    #                         nexus.train(UnitTypeId.PROBE)
-    #                         found_something = True
+                for nexus in self.townhalls:
+                    # get worker count for this nexus:
+                    worker_count = len(self.workers.closer_than(10, nexus))
+                    if worker_count < 22:  # 16+3+3
+                        if nexus.is_idle and self.can_afford(UnitTypeId.PROBE):
+                            nexus.train(UnitTypeId.PROBE)
+                            found_something = True
 
-    #                 # have we built enough assimilators?
-    #                 # find vespene geysers
-    #                 for geyser in self.vespene_geyser.closer_than(10, nexus):
-    #                     # build assimilator if there isn't one already:
-    #                     if not self.can_afford(UnitTypeId.ASSIMILATOR):
-    #                         break
-    #                     if (
-    #                         not self.structures(UnitTypeId.ASSIMILATOR)
-    #                         .closer_than(2.0, geyser)
-    #                         .exists
-    #                     ):
-    #                         await self.build(UnitTypeId.ASSIMILATOR, geyser)
-    #                         found_something = True
+                    # have we built enough assimilators?
+                    # find vespene geysers
+                    for geyser in self.vespene_geyser.closer_than(10, nexus):
+                        # build assimilator if there isn't one already:
+                        if not self.can_afford(UnitTypeId.ASSIMILATOR):
+                            break
+                        if (
+                            not self.structures(UnitTypeId.ASSIMILATOR)
+                            .closer_than(2.0, geyser)
+                            .exists
+                        ):
+                            await self.build(UnitTypeId.ASSIMILATOR, geyser)
+                            found_something = True
 
-    #         if not found_something:
-    #             if self.already_pending(UnitTypeId.NEXUS) == 0 and self.can_afford(
-    #                 UnitTypeId.NEXUS
-    #             ):
-    #                 await self.expand_now()
+            if not found_something:
+                if self.already_pending(UnitTypeId.NEXUS) == 0 and self.can_afford(
+                    UnitTypeId.NEXUS
+                ):
+                    await self.expand_now()
 
-    #     except Exception as e:
-    #         print(e)
+        except Exception as e:
+            print(e)
 
-    # async def build_stargate(self):
-    #     try:
-    #         # iterate thru all nexus and see if these buildings are close
-    #         for nexus in self.townhalls:
-    #             # is there is not a gateway close:
-    #             if (
-    #                 not self.structures(UnitTypeId.GATEWAY)
-    #                 .closer_than(10, nexus)
-    #                 .exists
-    #             ):
-    #                 # if we can afford it:
-    #                 if (
-    #                     self.can_afford(UnitTypeId.GATEWAY)
-    #                     and self.already_pending(UnitTypeId.GATEWAY) == 0
-    #                 ):
-    #                     # build gateway
-    #                     await self.build(UnitTypeId.GATEWAY, near=nexus)
+    async def build_stargate(self):
+        try:
+            # iterate thru all nexus and see if these buildings are close
+            for nexus in self.townhalls:
+                # is there is not a gateway close:
+                if (
+                    not self.structures(UnitTypeId.GATEWAY)
+                    .closer_than(10, nexus)
+                    .exists
+                ):
+                    # if we can afford it:
+                    if (
+                        self.can_afford(UnitTypeId.GATEWAY)
+                        and self.already_pending(UnitTypeId.GATEWAY) == 0
+                    ):
+                        # build gateway
+                        await self.build(UnitTypeId.GATEWAY, near=nexus)
 
-    #             # if the is not a cybernetics core close:
-    #             if (
-    #                 not self.structures(UnitTypeId.CYBERNETICSCORE)
-    #                 .closer_than(10, nexus)
-    #                 .exists
-    #             ):
-    #                 # if we can afford it:
-    #                 if (
-    #                     self.can_afford(UnitTypeId.CYBERNETICSCORE)
-    #                     and self.already_pending(UnitTypeId.CYBERNETICSCORE) == 0
-    #                 ):
-    #                     # build cybernetics core
-    #                     await self.build(UnitTypeId.CYBERNETICSCORE, near=nexus)
+                # if the is not a cybernetics core close:
+                if (
+                    not self.structures(UnitTypeId.CYBERNETICSCORE)
+                    .closer_than(10, nexus)
+                    .exists
+                ):
+                    # if we can afford it:
+                    if (
+                        self.can_afford(UnitTypeId.CYBERNETICSCORE)
+                        and self.already_pending(UnitTypeId.CYBERNETICSCORE) == 0
+                    ):
+                        # build cybernetics core
+                        await self.build(UnitTypeId.CYBERNETICSCORE, near=nexus)
 
-    #             # if there is not a stargate close:
-    #             if (
-    #                 not self.structures(UnitTypeId.STARGATE)
-    #                 .closer_than(10, nexus)
-    #                 .exists
-    #             ):
-    #                 # if we can afford it:        elif action == 3:
-    #                 if (
-    #                     self.can_afford(UnitTypeId.STARGATE)
-    #                     and self.already_pending(UnitTypeId.STARGATE) == 0
-    #                 ):
-    #                     # build stargate
-    #                     await self.build(UnitTypeId.STARGATE, near=nexus)
+                # if there is not a stargate close:
+                if (
+                    not self.structures(UnitTypeId.STARGATE)
+                    .closer_than(10, nexus)
+                    .exists
+                ):
+                    # if we can afford it:        elif action == 3:
+                    if (
+                        self.can_afford(UnitTypeId.STARGATE)
+                        and self.already_pending(UnitTypeId.STARGATE) == 0
+                    ):
+                        # build stargate
+                        await self.build(UnitTypeId.STARGATE, near=nexus)
 
-    #     except Exception as e:
-    #         print(e)
+        except Exception as e:
+            print(e)
 
-    # async def build_voidray(self):
-    #     try:
-    #         if self.can_afford(UnitTypeId.VOIDRAY):
-    #             for sg in self.structures(UnitTypeId.STARGATE).ready.idle:
-    #                 if self.can_afford(UnitTypeId.VOIDRAY):
-    #                     sg.train(UnitTypeId.VOIDRAY)
+    async def build_voidray(self):
+        try:
+            if self.can_afford(UnitTypeId.VOIDRAY):
+                for sg in self.structures(UnitTypeId.STARGATE).ready.idle:
+                    if self.can_afford(UnitTypeId.VOIDRAY):
+                        sg.train(UnitTypeId.VOIDRAY)
 
-    #     except Exception as e:
-    #         print(e)
+        except Exception as e:
+            print(e)
 
-    # async def send_scout(self, iteration):  # are there any idle probes:
-    #     try:
-    #         self.last_sent
-    #     except:
-    #         self.last_sent = 0
+    async def send_scout(self, iteration):  # are there any idle probes:
+        try:
+            self.last_sent
+        except:
+            self.last_sent = 0
 
-    #     # if self.last_sent doesnt exist yet:
-    #     if (iteration - self.last_sent) > 200:
-    #         try:
-    #             if self.units(UnitTypeId.PROBE).idle.exists:
-    #                 # pick one of these randomly:
-    #                 probe = random.choice(self.units(UnitTypeId.PROBE).idle)
-    #             else:
-    #                 probe = random.choice(self.units(UnitTypeId.PROBE))
-    #             # send probe towards enemy base:
-    #             probe.attack(self.enemy_start_locations[0])
-    #             self.last_sent = iteration
+        # if self.last_sent doesnt exist yet:
+        if (iteration - self.last_sent) > 200:
+            try:
+                if self.units(UnitTypeId.PROBE).idle.exists:
+                    # pick one of these randomly:
+                    probe = random.choice(self.units(UnitTypeId.PROBE).idle)
+                else:
+                    probe = random.choice(self.units(UnitTypeId.PROBE))
+                # send probe towards enemy base:
+                probe.attack(self.enemy_start_locations[0])
+                self.last_sent = iteration
 
-    #         except Exception as e:
-    #             pass
+            except Exception as e:
+                pass
 
-    # async def attack(self):
-    #     try:
-    #         # take all void rays and attack!
-    #         for voidray in self.units(UnitTypeId.VOIDRAY).idle:
-    #             # if we can attack:
-    #             if self.enemy_units.closer_than(10, voidray):
-    #                 # attack!
-    #                 voidray.attack(
-    #                     random.choice(self.enemy_units.closer_than(10, voidray))
-    #                 )
-    #             # if we can attack:
-    #             elif self.enemy_structures.closer_than(10, voidray):
-    #                 # attack!
-    #                 voidray.attack(
-    #                     random.choice(self.enemy_structures.closer_than(10, voidray))
-    #                 )
-    #             # any enemy units:
-    #             elif self.enemy_units:
-    #                 # attack!
-    #                 voidray.attack(random.choice(self.enemy_units))
-    #             # any enemy structures:
-    #             elif self.enemy_structures:
-    #                 # attack!
-    #                 voidray.attack(random.choice(self.enemy_structures))
-    #             # if we can attack:
-    #             elif self.enemy_start_locations:
-    #                 # attack!
-    #                 voidray.attack(self.enemy_start_locations[0])
+    async def attack(self):
+        try:
+            # take all void rays and attack!
+            for voidray in self.units(UnitTypeId.VOIDRAY).idle:
+                # if we can attack:
+                if self.enemy_units.closer_than(10, voidray):
+                    # attack!
+                    voidray.attack(
+                        random.choice(self.enemy_units.closer_than(10, voidray))
+                    )
+                # if we can attack:
+                elif self.enemy_structures.closer_than(10, voidray):
+                    # attack!
+                    voidray.attack(
+                        random.choice(self.enemy_structures.closer_than(10, voidray))
+                    )
+                # any enemy units:
+                elif self.enemy_units:
+                    # attack!
+                    voidray.attack(random.choice(self.enemy_units))
+                # any enemy structures:
+                elif self.enemy_structures:
+                    # attack!
+                    voidray.attack(random.choice(self.enemy_structures))
+                # if we can attack:
+                elif self.enemy_start_locations:
+                    # attack!
+                    voidray.attack(self.enemy_start_locations[0])
 
-    #     except Exception as e:
-    #         print(e)
+        except Exception as e:
+            print(e)
 
-    # async def voidray_flee(self):
-    #     if self.units(UnitTypeId.VOIDRAY).amount > 0:
-    #         for vr in self.units(UnitTypeId.VOIDRAY):
-    #             vr.attack(self.start_location)
+    async def voidray_flee(self):
+        if self.units(UnitTypeId.VOIDRAY).amount > 0:
+            for vr in self.units(UnitTypeId.VOIDRAY):
+                vr.attack(self.start_location)
 
 
 result = run_game(  # run_game is a function that runs the game.
