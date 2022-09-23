@@ -21,7 +21,7 @@ from sc2.player import (  # wrapper for whether or not the agent is one of your 
     Computer,
 )
 
-SAVE_REPLAY = True
+SAVE_REPLAY = False
 TIME = int(time.time())
 
 rendering.create_replay_screenshots_dir(TIME)
@@ -47,6 +47,7 @@ def main():
             Computer(Race.Zerg, Difficulty.Hard),
         ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
         realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
+        save_replay_as=f"/home/andrew/StarCraftII/Replays/{time}.SC2Replay",
     )
 
     rendering.convert_replay_screenshots_to_video(TIME)
