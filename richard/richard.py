@@ -34,7 +34,11 @@ class Richard(BotAI):  # inherits from BotAI
             (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
         )
 
+        # Abstracted out the rendering logic into its own module to keep the bot code clean
         rendering.render(self, map, iteration, SAVE_REPLAY, TIME)
+
+        # Bot logic happens in this module
+        # await
 
 
 def main():
@@ -42,7 +46,7 @@ def main():
         maps.get("AbyssalReefLE"),  # the map we are playing on
         [
             Bot(
-                Race.Protoss, Richard()
+                Race.Terran, Richard()
             ),  # runs our coded bot, protoss race, and we pass our bot object
             Computer(Race.Zerg, Difficulty.Hard),
         ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
