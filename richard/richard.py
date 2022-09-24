@@ -20,6 +20,7 @@ from sc2.player import (  # wrapper for whether or not the agent is one of your 
     Bot,
     Computer,
 )
+from brain import Brain
 
 SAVE_REPLAY = False
 TIME = int(time.time())
@@ -38,7 +39,7 @@ class Richard(BotAI):  # inherits from BotAI
         rendering.render(self, map, iteration, SAVE_REPLAY, TIME)
 
         # Bot logic happens in this module
-        # await
+        # await 
 
 
 def main():
@@ -53,6 +54,6 @@ def main():
         realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
         save_replay_as=f"/home/andrew/StarCraftII/Replays/{time}.SC2Replay",
     )
-
-    rendering.convert_replay_screenshots_to_video(TIME)
+    if SAVE_REPLAY:
+        rendering.convert_replay_screenshots_to_video(TIME)
     # rendering.cleanup_replay_screenshots_dir(TIME)
