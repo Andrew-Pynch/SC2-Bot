@@ -8,6 +8,7 @@ from http.client import NOT_IMPLEMENTED
 
 import cv2
 import numpy as np
+from brain import brain
 from rendering import rendering
 from sc2 import maps  # maps method for loading maps to play in.
 from sc2.bot_ai import BotAI  # parent class we inherit from
@@ -20,7 +21,6 @@ from sc2.player import (  # wrapper for whether or not the agent is one of your 
     Bot,
     Computer,
 )
-from brain import Brain
 
 SAVE_REPLAY = False
 TIME = int(time.time())
@@ -39,7 +39,7 @@ class Richard(BotAI):  # inherits from BotAI
         rendering.render(self, map, iteration, SAVE_REPLAY, TIME)
 
         # Bot logic happens in this module
-        # await 
+        brain.think(self, iteration)
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
             Bot(
                 Race.Terran, Richard()
             ),  # runs our coded bot, protoss race, and we pass our bot object
-            Computer(Race.Zerg, Difficulty.Hard),
+            Computer(Race.Zerg, Difficulty.Easy),
         ],  # runs a pre-made computer agent, zerg race, with a hard difficulty.
         realtime=False,  # When set to True, the agent is limited in how long each step can take to process.
         save_replay_as=f"/home/andrew/StarCraftII/Replays/{time}.SC2Replay",
