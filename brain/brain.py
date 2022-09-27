@@ -17,8 +17,12 @@ async def think(bot: BotAI, iteration):
     await take_random_action(bot, iteration)
 
 
-def get_random_cc(bot: BotAI):
-    return bot.townhalls.idle.random_or(None)
+def get_random_cc(bot: BotAI, first=False):
+    CCs: Units = bot.townhalls(UnitTypeId.COMMANDCENTER)
+    if first is True:
+        return CCs.first
+    else:
+        return CCs.idle.random_or(None)
 
 
 async def take_random_action(bot: BotAI, iteration):
