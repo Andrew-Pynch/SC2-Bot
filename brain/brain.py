@@ -12,9 +12,8 @@ from sc2.units import Units
 
 
 async def think(bot: BotAI, iteration):
-    # build_workers(bot)
-    # await build_supply_depots(bot, iteration)
-    await take_random_action(bot, iteration)
+    if iteration % 50 == 0:
+        await take_random_action(bot, iteration)
 
 
 def get_random_cc(bot: BotAI, first=False):
@@ -22,16 +21,20 @@ def get_random_cc(bot: BotAI, first=False):
     if first is True:
         return CCs.first
     else:
-        return CCs.idle.random_or(None)
+        return CCs.random
 
 
 async def take_random_action(bot: BotAI, iteration):
     # This is a list of all the actions we can take
-    actions = [
-        build_workers,
-        build_supply_depots,
-        #    build_barracks,
-    ]
+    actions = {
+        0: build_workers(bot),
+        1: await build_supply_depots(bot),
+        2: await expand(bot),
+        3: await build_vespene_geyser(bot),
+        4: await build_barracks(bot),
+        5: await train_marine(bot),
+        6: await attack(bot),
+    }
     # Pick a random number between 0 and the length of the actions list
     random_action_index = random.randint(0, len(actions) - 1)
     if random_action_index == 0:
@@ -42,6 +45,18 @@ async def take_random_action(bot: BotAI, iteration):
         print("building supply depots", iteration)
         await build_supply_depots(bot)
 
+    if random_action_index == 2:
+        print("expanding", iteration)
+        await expand(bot)
+
+    if random_action_index == 3:
+        print("building vespene geysers", iteration)
+        await build_vespene_geyser(bot)
+
+    if random_action_index == 4:
+        print("building barracks", iteration)
+        await build_barracks(bot)
+
 
 def build_workers(bot: BotAI):
     cc = get_random_cc(bot)
@@ -51,9 +66,6 @@ def build_workers(bot: BotAI):
 
 async def build_supply_depots(bot: BotAI):
     cc = get_random_cc(bot, first=True)
-    print("cc", cc)
-    print("SUPPLY LEFT", bot.supply_left)
-    print("BOT GAME INFO", bot.game_info.map_center)
     if bot.supply_left < 3:
         if (
             bot.can_afford(UnitTypeId.SUPPLYDEPOT)
@@ -66,12 +78,39 @@ async def build_supply_depots(bot: BotAI):
                 near=cc.position.towards(bot.game_info.map_center, 8),
             )
 
+            # redistribute this worker back to mining minerals or gas
+            for worker in bot.workers.idle:
+                worker.gather(nearest_mineral_patch)
 
-# async def build_barracks(bot: BotAI, cc):
-#     # If we can afford barracks
-#     if bot.can_afford(UnitTypeId.BARRACKS):
-#         # Near same command as above with the depot
-#         await bot.build(
-#             UnitTypeId.BARRACKS,
-#             near=cc.position.towards(bot.game_info.map_center, 8),
-#         )
+
+async def expand(bot: BotAI):
+    if bot.can_afford(UnitTypeId.COMMANDCENTER):
+        await bot.expand_now()
+
+
+async def build_vespene_geyser(bot: BotAI):
+    cc = get_random_cc(bot)
+    if bot.can_afford(UnitTypeId.REFINERY):
+        # All the vespene geysirs nearby, including ones with a refinery on top of it
+        vgs = bot.vespene_geyser.closer_than(10, cc)
+        for vg in vgs:
+            if bot.gas_buildings.filter(lambda unit: unit.distance_to(vg) < 1):
+                continue
+            # Select a worker closest to the vespene geysir
+            worker: Unit = bot.select_build_worker(vg)
+            # Worker can be none in cases where all workers are dead
+            # or 'select_build_worker' function only selects from workers which carry no minerals
+            if worker is None:
+                continue
+            # Issue the build command to the worker, important: vg has to be a Unit, not a position
+            worker.build_gas(vg)
+            # Only issue one build geysir command per frame
+            break
+
+
+async def build_barracks(bot: BotAI):
+    cc = get_random_cc(bot)
+    if bot.can_afford(UnitTypeId.BARRACKS):
+        await bot.build(
+            UnitTypeId.BARRACKS, near=cc.position.towards(bot.game_info.map_center, 8)
+        )
