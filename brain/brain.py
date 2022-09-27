@@ -50,7 +50,8 @@ def build_workers(bot: BotAI):
 
 
 async def build_supply_depots(bot: BotAI):
-    cc = get_random_cc(bot)
+    cc = get_random_cc(bot, first=True)
+    print("cc", cc)
     print("SUPPLY LEFT", bot.supply_left)
     print("BOT GAME INFO", bot.game_info.map_center)
     if bot.supply_left < 3:
