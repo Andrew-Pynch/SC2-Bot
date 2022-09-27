@@ -100,6 +100,6 @@ class Sc2Env(gym.Env):
         with open(constants.FILE_NAME, "wb") as f:
             pickle.dump(data, f)
 
-        # run incredibot-sct.py non-blocking:
-        subprocess.Popen(["python3", "richard.py"], cwd="../richard")
+        # run python.py non-blocking:
+        subprocess.Popen(["python3", "richard/richard.py"], cwd="./")
         return observation  # reward, done, info can't be included
