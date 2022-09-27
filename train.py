@@ -1,8 +1,8 @@
 import time
 from stable_baselines3 import PPO
 import os
-from sc2env import sc2env
-from richard import richard
+import sc2env
+
 
 TIME = int(time.time())
 model_name = f"{TIME}"
