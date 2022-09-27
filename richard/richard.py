@@ -39,7 +39,7 @@ class Richard(BotAI):  # inherits from BotAI
         rendering.render(self, map, iteration, SAVE_REPLAY, TIME)
 
         # Bot logic happens in this module
-        brain.think(self, iteration)
+        await brain.think(self, iteration)
 
 
 def main():

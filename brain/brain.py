@@ -11,15 +11,17 @@ from sc2.unit import Unit
 from sc2.units import Units
 
 
-def think(bot: BotAI, iteration):
-    take_random_action(bot, iteration)
+async def think(bot: BotAI, iteration):
+    # build_workers(bot)
+    # await build_supply_depots(bot, iteration)
+    await take_random_action(bot, iteration)
 
 
 def get_random_cc(bot: BotAI):
     return bot.townhalls.idle.random_or(None)
 
 
-def take_random_action(bot: BotAI, iteration):
+async def take_random_action(bot: BotAI, iteration):
     # This is a list of all the actions we can take
     actions = [
         build_workers,
@@ -27,14 +29,14 @@ def take_random_action(bot: BotAI, iteration):
         #    build_barracks,
     ]
     # Pick a random number between 0 and the length of the actions list
-    # random_action_index = random.randint(0, len(actions) - 1)
-    # if random_action_index == 0:
-    #     print("building workers", iteration)
-    #     build_workers(bot)
+    random_action_index = random.randint(0, len(actions) - 1)
+    if random_action_index == 0:
+        print("building workers", iteration)
+        build_workers(bot)
 
-    # if random_action_index == 1:
-    #     print("building supply depots", iteration)
-    #     build_supply_depots(bot)
+    if random_action_index == 1:
+        print("building supply depots", iteration)
+        await build_supply_depots(bot)
 
 
 def build_workers(bot: BotAI):
@@ -45,12 +47,19 @@ def build_workers(bot: BotAI):
 
 async def build_supply_depots(bot: BotAI):
     cc = get_random_cc(bot)
-    # This picks a near-random worker to build a depot at location
-    # 'from command center towards game center, distance 8'
-    await bot.build(
-        UnitTypeId.SUPPLYDEPOT,
-        near=cc.position.towards(bot.game_info.map_center, 8),
-    )
+    print("SUPPLY LEFT", bot.supply_left)
+    print("BOT GAME INFO", bot.game_info.map_center)
+    if bot.supply_left < 3:
+        if (
+            bot.can_afford(UnitTypeId.SUPPLYDEPOT)
+            and bot.already_pending(UnitTypeId.SUPPLYDEPOT) < 2
+        ):
+            # This picks a near-random worker to build a depot at location
+            # 'from command center towards game center, distance 8'
+            await bot.build(
+                UnitTypeId.SUPPLYDEPOT,
+                near=cc.position.towards(bot.game_info.map_center, 8),
+            )
 
 
 # async def build_barracks(bot: BotAI, cc):
