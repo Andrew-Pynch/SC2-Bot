@@ -3,10 +3,10 @@ import pickle
 import subprocess
 import time
 
+import constants
 import gym
 import numpy as np
 from gym import spaces
-import constants
 
 ACTION_SPACE_SIZE = 9
 
@@ -101,5 +101,6 @@ class Sc2Env(gym.Env):
             pickle.dump(data, f)
 
         # run python.py non-blocking:
-        subprocess.Popen(["python3", "richard/richard.py"], cwd="./")
+        # subprocess.Popen(["python3", "richard/richard.py"], cwd="./")
+        subprocess.Popen(["python3", "richard.py"])
         return observation  # reward, done, info can't be included
