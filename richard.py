@@ -38,7 +38,7 @@ class Richard(BotAI):  # inherits from BotAI
 
             rendering.create_replay_screenshots_dir(TIME)
 
-        game_map = np.zeros(
+        map = np.zeros(
             (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
         )
 
@@ -75,10 +75,10 @@ def main():
     with open(f"../results.txt", "a") as f:
         f.write(f"{result}\n")
 
-    game_map = np.zeros((224, 224, 3), dtype=np.uint8)
-    observation = game_map
+    map = np.zeros((224, 224, 3), dtype=np.uint8)
+    observation = map
     data = {
-        "state": game_map,
+        "state": map,
         "reward": rwd,
         "action": None,
         "done": True,

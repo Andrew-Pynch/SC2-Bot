@@ -12,6 +12,7 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
+import numpy as np
 
 import constants
 
@@ -53,6 +54,10 @@ async def think(bot: BotAI, iteration):
         print(
             f"Iteration: {iteration}\nRWD: {reward}\nMarines: {bot.units(UnitTypeId.MARINE).amount}"
         )
+
+    map = np.zeros(
+        (bot.game_info.map_size[0], bot.game_info.map_size[1], 3), dtype=np.uint8
+    )
 
     # write the file
     data = {"state": map, "reward": reward, "action": None, "done": False}

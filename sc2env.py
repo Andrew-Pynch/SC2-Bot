@@ -69,11 +69,11 @@ class Sc2Env(gym.Env):
 
             except Exception as e:
                 wait_for_state = True
-                game_map = np.zeros((224, 224, 3), dtype=np.uint8)
-                observation = game_map
+                map = np.zeros((224, 224, 3), dtype=np.uint8)
+                observation = map
                 # if still failing, input an ACTION, 3 (scout)
                 data = {
-                    "state": game_map,
+                    "state": map,
                     "reward": 0,
                     "action": 3,
                     "done": False,
@@ -81,7 +81,7 @@ class Sc2Env(gym.Env):
                 with open(constants.FILE_NAME, "wb") as f:
                     pickle.dump(data, f)
 
-                state = game_map
+                state = map
                 reward = 0
                 done = False
                 action = 3
@@ -92,10 +92,10 @@ class Sc2Env(gym.Env):
 
     def reset(self):
         print("RESETTING ENVIRONMENT!!!!!!!!!!!!!")
-        game_map = np.zeros((224, 224, 3), dtype=np.uint8)
-        observation = game_map
+        map = np.zeros((224, 224, 3), dtype=np.uint8)
+        observation = map
         data = {
-            "state": game_map,
+            "state": map,
             "reward": 0,
             "action": None,
             "done": False,

@@ -2,6 +2,9 @@ import time
 from stable_baselines3 import PPO
 import os
 import sc2env
+import reset
+
+reset.main()
 
 
 TIME = int(time.time())
