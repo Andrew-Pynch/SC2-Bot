@@ -1,4 +1,12 @@
-from richard import richard
+import richard
+import recreate
+import reset
 
 
-richard.main()
+def main():
+    # recreate.main()
+    reset.main()
+    richard.main()
+
+
+main()

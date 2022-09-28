@@ -7,9 +7,9 @@ import time
 import gym
 import numpy as np
 from gym import spaces
-import reset
 
 import constants
+import reset
 
 ACTION_SPACE_SIZE = 9
 
@@ -48,6 +48,7 @@ class Sc2Env(gym.Env):
                             pickle.dump(state_rwd_action, f)
             except Exception as e:
                 print("error", e)
+
                 sys.exit()
 
         # waits for the new state to return (map and reward) (no new action yet. )
@@ -68,6 +69,7 @@ class Sc2Env(gym.Env):
                             wait_for_state = False
 
             except Exception as e:
+                print("error", e)
                 wait_for_state = True
                 map = np.zeros((224, 224, 3), dtype=np.uint8)
                 observation = map
@@ -78,8 +80,12 @@ class Sc2Env(gym.Env):
                     "action": 3,
                     "done": False,
                 }  # empty action waiting for the next one!
-                with open(constants.FILE_NAME, "wb") as f:
-                    pickle.dump(data, f)
+                try:
+                    with open(constants.FILE_NAME, "wb") as f:
+                        pickle.dump(data, f)
+                except Exception as e:
+                    print("error", e)
+                    sys.exit()
 
                 state = map
                 reward = 0
@@ -100,8 +106,12 @@ class Sc2Env(gym.Env):
             "action": None,
             "done": False,
         }  # empty action waiting for the next one!
-        with open(constants.FILE_NAME, "wb") as f:
-            pickle.dump(data, f)
+        try:
+            with open(constants.FILE_NAME, "wb") as f:
+                pickle.dump(data, f)
+        except Exception as e:
+            print("error", e)
+            sys.exit()
 
         # run python.py non-blocking:
         # subprocess.Popen(["python3", "richard/richard.py"], cwd="./")

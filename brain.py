@@ -2,6 +2,7 @@ import pickle
 import random
 import sys
 
+import numpy as np
 from sc2 import maps
 from sc2.bot_ai import BotAI
 from sc2.data import Difficulty, Race
@@ -12,7 +13,6 @@ from sc2.player import Bot, Computer
 from sc2.position import Point2
 from sc2.unit import Unit
 from sc2.units import Units
-import numpy as np
 
 import constants
 
@@ -20,9 +20,11 @@ import constants
 async def think(bot: BotAI, iteration):
     # if iteration % 50 == 0:
     #     await take_random_action(bot, iteration)
+    print("we dont have an action yet ")
     no_action = True
     while no_action:
         try:
+            print("we are trying to get an action")
             with open(constants.FILE_NAME, "rb") as f:
                 state_rwd_action = pickle.load(f)
 
@@ -67,6 +69,7 @@ async def think(bot: BotAI, iteration):
             pickle.dump(data, f)
     except Exception as e:
         print("error", e)
+
         sys.exit()
 
 

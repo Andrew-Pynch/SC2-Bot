@@ -24,6 +24,7 @@ from sc2.player import (  # wrapper for whether or not the agent is one of your 
 
 
 SAVE_REPLAY = False
+SHOW_DEBUGGING_IMAGES = True
 TIME = int(time.time())
 total_steps = 10000
 steps_for_pun = np.linspace(0, 1, total_steps)
@@ -35,18 +36,21 @@ class Richard(BotAI):  # inherits from BotAI
 
         print("Richard is on iteration:", iteration)
         if iteration == 0 and SAVE_REPLAY:
-
             rendering.create_replay_screenshots_dir(TIME)
-
+        print("Creating map")
         map = np.zeros(
             (self.game_info.map_size[0], self.game_info.map_size[1], 3), dtype=np.uint8
         )
+        print("Map created")
 
-        # Abstracted out the rendering logic into its own module to keep the bot code clean
-        rendering.render(self, map, iteration, SAVE_REPLAY, TIME)
+        if SHOW_DEBUGGING_IMAGES:
+            # Abstracted out the rendering logic into its own module to keep the bot code clean
+            rendering.render(self, map, iteration, SAVE_REPLAY, TIME)
 
+        print("distributing workers ")
         await self.distribute_workers()
 
+        print("beginning thinking step ")
         # Bot logic happens in this module
         await brain.think(self, iteration)
 
@@ -72,8 +76,12 @@ def main():
     else:
         rwd = -500
 
-    with open(f"../results.txt", "a") as f:
-        f.write(f"{result}\n")
+    try:
+        with open(f"../results.txt", "a") as f:
+            f.write(f"{result}\n")
+    except Exception as e:
+        print("error", e)
+        sys.exit()
 
     map = np.zeros((224, 224, 3), dtype=np.uint8)
     observation = map
@@ -83,8 +91,14 @@ def main():
         "action": None,
         "done": True,
     }  # empty action waiting for the next one!
-    with open("state_rwd_action.pkl", "wb") as f:
-        pickle.dump(data, f)
+    try:
+        with open("state_rwd_action.pkl", "wb") as f:
+            pickle.dump(data, f)
+    except Exception as e:
+        print(e)
+        print("Error writing to state_rwd_action.pkl")
+
+        sys.exit(1)
 
     cv2.destroyAllWindows()
     cv2.waitKey(1)
